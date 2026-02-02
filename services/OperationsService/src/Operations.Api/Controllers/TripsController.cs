@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Operations.Api.Dtos;
 using Operations.Application.Interfaces;
 using Operations.Domain.Entities;
+using Operations.Application.Events;
+using Fleet.Messaging.Abstractions;
 
 namespace Operations.Api.Controllers
 {
@@ -10,10 +12,12 @@ namespace Operations.Api.Controllers
     public class TripsController : ControllerBase
     {
         private readonly ITripRepository _repo;
+        private readonly IEventBus _eventBus;
 
-        public TripsController(ITripRepository repo)
+        public TripsController(ITripRepository repo, IEventBus eventBus)
         {
             _repo = repo;
+            _eventBus = eventBus;
         }
 
         [HttpPost]
@@ -22,6 +26,11 @@ namespace Operations.Api.Controllers
             var startedAt = req.StartedAt ?? DateTime.UtcNow;
             var trip = new Trip(req.VehicleId, req.DriverId, startedAt);
             await _repo.AddAsync(trip);
+            await _eventBus.PublishAsync(new TripStartedEvent(
+                trip.Id,
+                trip.VehicleId,
+                trip.DriverId,
+                trip.StartedAt));
             var dto = new TripDto(trip.Id, trip.VehicleId, trip.DriverId, trip.StartedAt, trip.EndedAt, trip.Status);
             return CreatedAtAction(nameof(Get), new { id = trip.Id }, dto);
         }
@@ -42,6 +51,15 @@ namespace Operations.Api.Controllers
             if (trip == null) return NotFound();
             trip.EndTrip(DateTime.UtcNow);
             await _repo.UpdateAsync(trip);
+            if (trip.EndedAt.HasValue)
+            {
+                await _eventBus.PublishAsync(new TripEndedEvent(
+                    trip.Id,
+                    trip.VehicleId,
+                    trip.DriverId,
+                    trip.StartedAt,
+                    trip.EndedAt.Value));
+            }
             var dto = new TripDto(trip.Id, trip.VehicleId, trip.DriverId, trip.StartedAt, trip.EndedAt, trip.Status);
             return Ok(dto);
         }

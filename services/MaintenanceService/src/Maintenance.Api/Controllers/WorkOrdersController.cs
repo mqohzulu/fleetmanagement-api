@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Maintenance.Api.Dtos;
 using Maintenance.Application.Interfaces;
 using Maintenance.Domain.Entities;
+using Maintenance.Application.Events;
+using Fleet.Messaging.Abstractions;
 
 namespace Maintenance.Api.Controllers
 {
@@ -10,10 +12,12 @@ namespace Maintenance.Api.Controllers
     public class WorkOrdersController : ControllerBase
     {
         private readonly IWorkOrderRepository _repo;
+        private readonly IEventBus _eventBus;
 
-        public WorkOrdersController(IWorkOrderRepository repo)
+        public WorkOrdersController(IWorkOrderRepository repo, IEventBus eventBus)
         {
             _repo = repo;
+            _eventBus = eventBus;
         }
 
         [HttpPost]
@@ -21,6 +25,11 @@ namespace Maintenance.Api.Controllers
         {
             var wo = new WorkOrder(req.VehicleId, req.Description, req.DueAt);
             await _repo.AddAsync(wo);
+            await _eventBus.PublishAsync(new MaintenanceDueCalculatedEvent(
+                wo.Id,
+                wo.VehicleId,
+                wo.DueAt,
+                DateTime.UtcNow));
             var dto = new WorkOrderDto(wo.Id, wo.VehicleId, wo.Description, wo.CreatedAt, wo.DueAt, wo.CompletedAt, wo.Status);
             return CreatedAtAction(nameof(Get), new { id = wo.Id }, dto);
         }

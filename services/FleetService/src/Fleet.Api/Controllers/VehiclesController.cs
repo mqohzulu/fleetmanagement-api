@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Fleet.Api.Dtos;
 using Fleet.Application.Interfaces;
 using Fleet.Domain.Entities;
+using Fleet.Application.Events;
+using Fleet.Messaging.Abstractions;
 
 namespace Fleet.Api.Controllers
 {
@@ -10,10 +12,12 @@ namespace Fleet.Api.Controllers
     public class VehiclesController : ControllerBase
     {
         private readonly IVehicleRepository _repo;
+        private readonly IEventBus _eventBus;
 
-        public VehiclesController(IVehicleRepository repo)
+        public VehiclesController(IVehicleRepository repo, IEventBus eventBus)
         {
             _repo = repo;
+            _eventBus = eventBus;
         }
 
         [HttpPost]
@@ -21,6 +25,11 @@ namespace Fleet.Api.Controllers
         {
             var vehicle = new Vehicle(req.RegistrationNumber, req.Model);
             await _repo.AddAsync(vehicle);
+            await _eventBus.PublishAsync(new VehicleCreatedEvent(
+                vehicle.Id,
+                vehicle.RegistrationNumber,
+                vehicle.Model,
+                vehicle.CreatedAt));
             var dto = new VehicleDto(vehicle.Id, vehicle.RegistrationNumber, vehicle.Model, vehicle.CreatedAt, vehicle.Status);
             return CreatedAtAction(nameof(Get), new { id = vehicle.Id }, dto);
         }
