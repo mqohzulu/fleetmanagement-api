@@ -1,0 +1,5 @@
+version: '3.8'
+
+# Override for local development (optional)
+services:
+  # e.g., mount source directories for hot reload

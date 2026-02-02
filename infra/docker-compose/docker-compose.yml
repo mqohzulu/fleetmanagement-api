@@ -1,0 +1,187 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  migrate-identity:
+    build:
+      context: ../../
+      dockerfile: docker/migrations/Dockerfile
+    environment:
+      - MIGRATE_PROJECT=services/IdentityService/src/Identity.Infrastructure/Identity.Infrastructure.csproj
+      - STARTUP_PROJECT=services/IdentityService/src/Identity.Api/Identity.Api.csproj
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=identity_db
+      - DB_USER=postgres
+      - DB_PASS=postgres
+      - ConnectionStrings__Default=Host=postgres;Database=identity_db;Username=postgres;Password=postgres
+    volumes:
+      - ../../:/src:rw
+    depends_on:
+      - rabbitmq
+      - postgres
+    restart: "no"
+
+  migrate-operations:
+    build:
+      context: ../../
+      dockerfile: docker/migrations/Dockerfile
+    environment:
+      - MIGRATE_PROJECT=services/OperationsService/src/Operations.Infrastructure/Operations.Infrastructure.csproj
+      - STARTUP_PROJECT=services/OperationsService/src/Operations.Api/Operations.Api.csproj
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=operations_db
+      - DB_USER=postgres
+      - DB_PASS=postgres
+      - ConnectionStrings__Default=Host=postgres;Database=operations_db;Username=postgres;Password=postgres
+    volumes:
+      - ../../:/src:rw
+    depends_on:
+      - rabbitmq
+      - postgres
+    restart: "no"
+
+  migrate-fleet:
+    build:
+      context: ../../
+      dockerfile: docker/migrations/Dockerfile
+    environment:
+      - MIGRATE_PROJECT=services/FleetService/src/Fleet.Infrastructure/Fleet.Infrastructure.csproj
+      - STARTUP_PROJECT=services/FleetService/src/Fleet.Api/Fleet.Api.csproj
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=fleet_db
+      - DB_USER=postgres
+      - DB_PASS=postgres
+      - ConnectionStrings__Default=Host=postgres;Database=fleet_db;Username=postgres;Password=postgres
+    volumes:
+      - ../../:/src:rw
+    depends_on:
+      - rabbitmq
+      - postgres
+    restart: "no"
+
+  migrate-maintenance:
+    build:
+      context: ../../
+      dockerfile: docker/migrations/Dockerfile
+    environment:
+      - MIGRATE_PROJECT=services/MaintenanceService/src/Maintenance.Infrastructure/Maintenance.Infrastructure.csproj
+      - STARTUP_PROJECT=services/MaintenanceService/src/Maintenance.Api/Maintenance.Api.csproj
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=maintenance_db
+      - DB_USER=postgres
+      - DB_PASS=postgres
+      - ConnectionStrings__Default=Host=postgres;Database=maintenance_db;Username=postgres;Password=postgres
+    volumes:
+      - ../../:/src:rw
+    depends_on:
+      - rabbitmq
+      - postgres
+    restart: "no"
+
+  identity:
+    build:
+      context: ../../services/IdentityService
+      dockerfile: Dockerfile
+    environment:
+      - ConnectionStrings__Default=Host=postgres;Database=identity_db;Username=postgres;Password=postgres
+      - RabbitMq__HostName=rabbitmq
+      - RabbitMq__Port=5672
+      - RabbitMq__UserName=guest
+      - RabbitMq__Password=guest
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5001:80"
+    depends_on:
+      - rabbitmq
+      - migrate-identity
+
+  fleet:
+    build:
+      context: ../../services/FleetService
+      dockerfile: Dockerfile
+    environment:
+      - ConnectionStrings__Default=Host=postgres;Database=fleet_db;Username=postgres;Password=postgres
+      - RabbitMq__HostName=rabbitmq
+      - RabbitMq__Port=5672
+      - RabbitMq__UserName=guest
+      - RabbitMq__Password=guest
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5002:80"
+    depends_on:
+      - rabbitmq
+      - migrate-fleet
+
+  operations:
+    build:
+      context: ../../services/OperationsService
+      dockerfile: Dockerfile
+    environment:
+      - ConnectionStrings__Default=Host=postgres;Database=operations_db;Username=postgres;Password=postgres
+      - RabbitMq__HostName=rabbitmq
+      - RabbitMq__Port=5672
+      - RabbitMq__UserName=guest
+      - RabbitMq__Password=guest
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5003:80"
+    depends_on:
+      - rabbitmq
+      - migrate-operations
+
+  maintenance:
+    build:
+      context: ../../services/MaintenanceService
+      dockerfile: Dockerfile
+    environment:
+      - ConnectionStrings__Default=Host=postgres;Database=maintenance_db;Username=postgres;Password=postgres
+      - RabbitMq__HostName=rabbitmq
+      - RabbitMq__Port=5672
+      - RabbitMq__UserName=guest
+      - RabbitMq__Password=guest
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5004:80"
+    depends_on:
+      - rabbitmq
+      - migrate-maintenance
+
+  gateway:
+    build:
+      context: ../../gateway/ApiGateway
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "80:80"
+    depends_on:
+      - identity
+      - fleet
+      - operations
+      - maintenance
+
+volumes:
+  data_identity:
+  data_operations:
+  data_fleet:
+  data_maintenance:

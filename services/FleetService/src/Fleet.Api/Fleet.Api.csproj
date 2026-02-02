@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Fleet.Application\Fleet.Application.csproj" />
+    <ProjectReference Include="..\..\Fleet.Domain\Fleet.Domain.csproj" />
+    <ProjectReference Include="..\..\Fleet.Infrastructure\Fleet.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\services\IdentityService\src\Identity.Application\Identity.Application.csproj" />
+    <ProjectReference Include="..\..\..\..\src\building-blocks\Fleet.Messaging\Fleet.Messaging.csproj" />
+  </ItemGroup>
+</Project>
