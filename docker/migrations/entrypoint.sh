@@ -13,7 +13,7 @@ echo "Running migrations for project: $MIGRATE_PROJECT"
 echo "Using startup project: $STARTUP_PROJECT"
 
 # Restore just in case
-dotnet restore "$STARTUP_PROJECT"
+dotnet restore fleetmanagement-api.sln
 
 # If Postgres DB details provided, wait for Postgres and create the database if missing
 if [ ! -z "${DB_HOST:-}" ] && [ ! -z "${DB_NAME:-}" ] && [ ! -z "${DB_USER:-}" ]; then
