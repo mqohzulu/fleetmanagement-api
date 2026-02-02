@@ -23,6 +23,30 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
+# Visual Studio
+.vs/
+.vscode/
+*.code-workspace
+
+# Rider & IntelliJ IDEs
+.idea/
+*.sln.iml
+*.sln.iml
+*.swp
+*.swo
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ReSharper is a .NET coding add-in
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
 # .NET Core
 project.lock.json
 project.fragment.lock.json
@@ -33,13 +57,29 @@ ScaffoldingReadMe.txt
 
 # NuGet Packages
 *.nupkg
+NuGet.Config
+.nuget/
 # NuGet Symbol Packages
 *.snupkg
+
+# Package References
+packages/
+.packages/
+
+# Cake - Uncomment if you are using it
+# tools/**
+# !tools/packages.config
 
 # Others
 ~$*
 *~
 CodeCoverage/
+.coverage
+
+# Local database
+*.db
+*.sqlite
+*.sqlite3
 
 # MSBuild Binary and Structured Log
 *.binlog
@@ -52,3 +92,58 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Xunit test Results
+xunit-*.xml
+
+# XUnit - Remove obj folder that may contain incorrect files
+obj/
+
+# Open Cover UI reports
+OpenCover/
+
+# NyroCA coverage reports
+Coverage/
+
+# Web Workbench (sass)
+.sass-cache/
+
+# Backup & report files
+[Bb]ackup*/
+UpgradeLog*.XML
+UpgradeLog*.htm
+ServiceFabricBackup/
+*.rptproj.bak
+
+# SQL Server files
+*.mdf
+*.ldf
+*.ndf
+
+# Business Intelligence projects
+*.rdl.data
+*.bim.layout
+*.bim_*.settings
+*.rptproj.rsuser
+*- [Bb]ackup.rdl
+*- [Bb]ackup.bim
+
+# OData metadata files
+*.edmx.metadata.xml
+
+# OpenCover UI reports
+OpenCover/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS specific
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Docker
+.dockerignore
